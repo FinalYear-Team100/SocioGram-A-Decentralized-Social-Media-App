@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SociogGram</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/near-api-js/dist/near-api-js.min.js"></script> 
+</head>
+
+<body>
+    <div id="login-container" class="centered-container">
+        <button id="login-btn" class="btn primary-btn">Login with NEAR WALLET</button>
+    </div>
+    
+    <div id="chat-container" class="hidden chat-wrapper">
+        <div id="top-bar">
+            <button id="register-btn" class="btn secondary-btn hidden">Register</button>
+            <button id="logout-btn" class="btn danger-btn">Logout</button>
+        </div>
+        <div id="main-section">
+            <div id="user-list-container" class="user-list-box">
+                <h3>Active Users</h3>
+                <ul id="user-list" class="user-list"></ul>
+            </div>
+            <div id="chat-box" class="hidden chat-box">
+                <h3 id="chat-header">Chat</h3>
+                <div id="messages-container" class="messages"></div>
+                <div class="message-input">
+                    <input type="text" id="message" placeholder="Type a message...">
+                    <button id="send-message" class="btn send-btn">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="login.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</body>
+</html> 
