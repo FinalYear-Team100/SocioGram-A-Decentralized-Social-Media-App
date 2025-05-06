@@ -4,7 +4,7 @@ import * as nearAPI from 'near-api-js';
 const nearConfig = {
     networkId:     import.meta.env.VITE_NEAR_NETWORK_ID    || 'testnet',
     nodeUrl:       import.meta.env.VITE_NEAR_NODE_URL      || 'https://rpc.testnet.near.org',
-    walletUrl:     import.meta.env.VITE_NEAR_WALLET_URL    || 'https://wallet.testnet.near.org',
+    walletUrl:     import.meta.env.VITE_NEAR_WALLET_URL    || 'https://testnet.mynearwallet.com',
     helperUrl:     import.meta.env.VITE_NEAR_HELPER_URL    || 'https://helper.testnet.near.org',
     explorerUrl:   import.meta.env.VITE_NEAR_EXPLORER_URL  || 'https://explorer.testnet.near.org',
     contractName:  import.meta.env.VITE_NEAR_CONTRACT_NAME || 'swapnilparicha.testnet',
@@ -50,17 +50,13 @@ export async function initNear() {
 
 // Redirect to NEAR Wallet for sign-in
 export function login() {
-    if (!wallet) {
-        console.error("❌ Wallet not initialized");
-        return;
-    }
-
-    // ← always use the old signature
-    wallet.requestSignIn(
-        nearConfig.contractName,
-        ['register_user','send_message'],
-        window.location.origin + '/chat',
-        window.location.origin
+    if (!wallet) throw new Error("Wallet not initialized");
+    // ← use the positional overload so it hits /login on MyNearWallet
+    return wallet.requestSignIn(
+        nearConfig.contractName,          // your contract
+        ['register_user','send_message'], // the methods you'll call
+        window.location.origin + '/chat',  // success redirect
+        window.location.origin            // failure redirect
     );
 }
 
