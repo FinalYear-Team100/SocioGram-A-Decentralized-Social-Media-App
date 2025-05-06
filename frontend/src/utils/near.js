@@ -8,12 +8,17 @@ const nearConfig = {
     helperUrl:     import.meta.env.VITE_NEAR_HELPER_URL    || 'https://helper.testnet.near.org',
     explorerUrl:   import.meta.env.VITE_NEAR_EXPLORER_URL  || 'https://explorer.testnet.near.org',
     contractName:  import.meta.env.VITE_NEAR_CONTRACT_NAME || 'swapnilparicha.testnet',
-  }
+}
 
 // Global variables
 let near;
 let wallet;
 let contract;
+
+// Get base URL without any path
+function getBaseUrl() {
+    return window.location.origin;
+}
 
 // Initialize NEAR connection
 export async function initNear() {
@@ -43,6 +48,7 @@ export async function initNear() {
                 {
                     viewMethods: ["view_users", "get_messages", "get_methods"],
                     changeMethods: ["register_user", "send_message"],
+                    useLocalViewExecution: false // Force using RPC for view calls
                 }
             );
             console.log("Contract interface initialized");
@@ -58,12 +64,18 @@ export async function initNear() {
 // Redirect to NEAR Wallet for sign-in
 export function login() {
     if (!wallet) throw new Error("Wallet not initialized");
-    // ← use the positional overload so it hits /login on MyNearWallet
+    
+    // Absolute URLs for success and failure redirects
+    const successUrl = getBaseUrl() + '#/chat';  // Use hash routing for SPA
+    const failureUrl = getBaseUrl();
+    
+    console.log("Login redirect URLs:", { successUrl, failureUrl });
+    
     return wallet.requestSignIn(
-        nearConfig.contractName,          // your contract
-        ['register_user','send_message'], // the methods you'll call
-        window.location.origin + '/chat',  // success redirect
-        window.location.origin            // failure redirect
+        nearConfig.contractName,          // contract name
+        'Sociogram Chat App',             // title 
+        successUrl,                       // success redirect
+        failureUrl                        // failure redirect
     );
 }
 
@@ -74,7 +86,7 @@ export function logout() {
         return;
     }
     wallet.signOut();
-    window.location.reload();
+    window.location.href = getBaseUrl(); // Redirect to home page
 }
 
 // Helpers
@@ -86,27 +98,41 @@ export function getAccountId() {
     return wallet?.isSignedIn() ? wallet.getAccountId() : null;
 }
 
-// Contract calls
+// Contract calls with transaction handling
 export async function registerUser(username) {
     if (!contract) throw new Error("Contract not initialized");
-    return contract.register_user({ username });
+    
+    try {
+        console.log("Registering user:", username);
+        return await contract.register_user({ username });
+    } catch (error) {
+        console.error("Error registering user:", error);
+        throw error;
+    }
 }
 
 export async function getUsers() {
-    if (!contract) return [];
-    return contract.view_users();
+    try {
+        if (!contract) {
+            console.log("Contract not initialized for getUsers, initializing...");
+            await initNear();
+            if (!contract) return [];
+        }
+        
+        console.log("Fetching users list");
+        return await contract.view_users();
+    } catch (error) {
+        console.error("Error getting users:", error);
+        return [];
+    }
 }
 
 export async function getMessages(userId) {
     try {
         if (!contract) {
-            console.log("Contract not initialized, attempting to initialize NEAR...");
+            console.log("Contract not initialized for getMessages, initializing...");
             await initNear();
-            
-            if (!contract) {
-                console.error("Failed to initialize contract");
-                return [];
-            }
+            if (!contract) return [];
         }
         
         console.log("Getting messages for user:", userId);
@@ -121,15 +147,21 @@ export async function getMessages(userId) {
 
 export async function sendMessage(receiver, content) {
     if (!contract) throw new Error("Contract not initialized");
-    return contract.send_message({ receiver, content });
+    
+    try {
+        console.log("Sending message to:", receiver, "Content length:", content.length);
+        
+        // For sending messages, we'll use an explicit transaction - this helps with handling redirects
+        const result = await contract.send_message(
+            { receiver, content },
+            "30000000000000", // Gas (30 TGas)
+            "0" // Deposit (0 NEAR)
+        );
+        
+        console.log("Message sent successfully:", result);
+        return result;
+    } catch (error) {
+        console.error("Error sending message:", error);
+        throw error;
+    }
 }
-
-
-
-
-
-
-
-
-
-
