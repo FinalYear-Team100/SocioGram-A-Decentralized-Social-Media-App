@@ -18,6 +18,8 @@ let contract;
 // Initialize NEAR connection
 export async function initNear() {
     try {
+        console.log("Initializing NEAR with config:", nearConfig);
+        
         // Initialize connection to the NEAR network
         near = await nearAPI.connect({
             networkId: nearConfig.networkId,
@@ -26,12 +28,15 @@ export async function initNear() {
             helperUrl:  nearConfig.helperUrl,
             keyStore:   new nearAPI.keyStores.BrowserLocalStorageKeyStore(),
         });
+        console.log("NEAR connection established");
 
         // Initialize wallet connection
         wallet = new nearAPI.WalletConnection(near, "sociogram");
+        console.log("Wallet initialized, signed in:", wallet.isSignedIn());
 
         // Initialize contract interface if user is signed in
         if (wallet.isSignedIn()) {
+            console.log("User is signed in, initializing contract for:", nearConfig.contractName);
             contract = new nearAPI.Contract(
                 wallet.account(),
                 nearConfig.contractName,
@@ -40,6 +45,7 @@ export async function initNear() {
                     changeMethods: ["register_user", "send_message"],
                 }
             );
+            console.log("Contract interface initialized");
         }
 
         return { near, wallet, contract };
@@ -92,8 +98,25 @@ export async function getUsers() {
 }
 
 export async function getMessages(userId) {
-    if (!contract) await initNear();
-    return (await contract.get_messages({ user: userId })) || [];
+    try {
+        if (!contract) {
+            console.log("Contract not initialized, attempting to initialize NEAR...");
+            await initNear();
+            
+            if (!contract) {
+                console.error("Failed to initialize contract");
+                return [];
+            }
+        }
+        
+        console.log("Getting messages for user:", userId);
+        const messages = await contract.get_messages({ user: userId }) || [];
+        console.log("Received messages:", messages.length);
+        return messages;
+    } catch (error) {
+        console.error("Error getting messages:", error);
+        return [];
+    }
 }
 
 export async function sendMessage(receiver, content) {
