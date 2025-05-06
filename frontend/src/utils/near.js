@@ -20,10 +20,11 @@ export async function initNear() {
     try {
         // Initialize connection to the NEAR network
         near = await nearAPI.connect({
-            deps: {
-                keyStore: new nearAPI.keyStores.BrowserLocalStorageKeyStore(),
-            },
-            ...nearConfig,
+            networkId: nearConfig.networkId,
+            nodeUrl:    nearConfig.nodeUrl,
+            walletUrl:  nearConfig.walletUrl,
+            helperUrl:  nearConfig.helperUrl,
+            keyStore:   new nearAPI.keyStores.BrowserLocalStorageKeyStore(),
         });
 
         // Initialize wallet connection
