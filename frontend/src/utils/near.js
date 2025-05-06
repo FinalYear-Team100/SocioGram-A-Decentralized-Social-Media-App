@@ -2,13 +2,13 @@ import * as nearAPI from 'near-api-js';
 
 // Configure NEAR connection
 const nearConfig = {
-    networkId: "testnet",
-    nodeUrl: "https://rpc.testnet.near.org",
-    walletUrl: "https://testnet.mynearwallet.com",
-    helperUrl: "https://helper.testnet.near.org",
-    explorerUrl: "https://explorer.testnet.near.org",
-    contractName: "swapnilparicha.testnet", // Replace with your contract account
-};
+    networkId:     import.meta.env.VITE_NEAR_NETWORK_ID    || 'testnet',
+    nodeUrl:       import.meta.env.VITE_NEAR_NODE_URL      || 'https://rpc.testnet.near.org',
+    walletUrl:     import.meta.env.VITE_NEAR_WALLET_URL    || 'https://wallet.testnet.near.org',
+    helperUrl:     import.meta.env.VITE_NEAR_HELPER_URL    || 'https://helper.testnet.near.org',
+    explorerUrl:   import.meta.env.VITE_NEAR_EXPLORER_URL  || 'https://explorer.testnet.near.org',
+    contractName:  import.meta.env.VITE_NEAR_CONTRACT_NAME || 'swapnilparicha.testnet',
+  }
 
 // Global variables
 let near;
@@ -31,7 +31,7 @@ export async function initNear() {
 
         // Initialize contract interface if user is signed in
         if (wallet.isSignedIn()) {
-            contract = await new nearAPI.Contract(
+            contract = new nearAPI.Contract(
                 wallet.account(),
                 nearConfig.contractName,
                 {
@@ -48,107 +48,58 @@ export async function initNear() {
     }
 }
 
-// Login with NEAR wallet
+// Redirect to NEAR Wallet for sign-in
 export function login() {
     if (!wallet) {
-        console.error("Wallet not initialized");
+        console.error("❌ Wallet not initialized");
         return;
     }
-    
-    wallet.requestSignIn({
-        contractId: nearConfig.contractName,
-        methodNames: ["register_user", "send_message"],
-        successUrl: window.location.origin + "/chat"
-    });
+
+    // ← always use the old signature
+    wallet.requestSignIn(
+        nearConfig.contractName,
+        ['register_user','send_message'],
+        window.location.origin + '/chat',
+        window.location.origin
+    );
 }
 
-// Logout from NEAR wallet
+// Sign out and reload
 export function logout() {
     if (!wallet) {
-        console.error("Wallet not initialized");
+        console.error("❌ Wallet not initialized");
         return;
     }
-    
     wallet.signOut();
-    
-    // Redirect to home page
-    window.location.href = '/';
+    window.location.reload();
 }
 
-// Check if user is signed in
+// Helpers
 export function isSignedIn() {
-    return wallet && wallet.isSignedIn();
+    return wallet?.isSignedIn() || false;
 }
 
-// Get current account ID
 export function getAccountId() {
-    return wallet && wallet.isSignedIn() ? wallet.getAccountId() : null;
+    return wallet?.isSignedIn() ? wallet.getAccountId() : null;
 }
 
-// Register a new user
+// Contract calls
 export async function registerUser(username) {
-    if (!contract) {
-        console.error("Contract not initialized");
-        return null;
-    }
-    
-    try {
-        return await contract.register_user({ username });
-    } catch (error) {
-        console.error("Registration error:", error);
-        throw error;
-    }
+    if (!contract) throw new Error("Contract not initialized");
+    return contract.register_user({ username });
 }
 
-// Get all registered users
 export async function getUsers() {
-    if (!contract) {
-        console.error("Contract not initialized");
-        return [];
-    }
-    
-    try {
-        return await contract.view_users();
-    } catch (error) {
-        console.error("Error fetching users:", error);
-        return [];
-    }
+    if (!contract) return [];
+    return contract.view_users();
 }
 
-// Get messages for a user
 export async function getMessages(userId) {
-    try {
-        if (!contract) {
-            console.log("Contract not initialized, initializing now...");
-            await initNear();
-        }
-        
-        console.log("Fetching messages for user:", userId);
-        try {
-            const messages = await contract.get_messages({ user: userId });
-            console.log("Successfully retrieved messages:", messages);
-            return messages || [];
-        } catch (err) {
-            console.error("Error retrieving messages:", err);
-            return []; // Return empty array on error
-        }
-    } catch (error) {
-        console.error("Error in getMessages:", error);
-        return [];
-    }
+    if (!contract) await initNear();
+    return (await contract.get_messages({ user: userId })) || [];
 }
 
-// Send a message
 export async function sendMessage(receiver, content) {
-    if (!contract) {
-        console.error("Contract not initialized");
-        return null;
-    }
-    
-    try {
-        return await contract.send_message({ receiver, content });
-    } catch (error) {
-        console.error("Error sending message:", error);
-        throw error;
-    }
+    if (!contract) throw new Error("Contract not initialized");
+    return contract.send_message({ receiver, content });
 }
