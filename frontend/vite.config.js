@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig({
   plugins: [
@@ -26,4 +26,10 @@ export default defineConfig({
       },
     },
   },
-})
+  build: {
+    outDir: 'dist', // important for Vercel's vercel.json "distDir"
+  },
+  server: {
+    historyApiFallback: true, // ensures SPA routing like /chat works locally
+  }
+});
