@@ -1,4 +1,4 @@
-# NEAR Protocol Chat Application
+# SocioGram
 
 ## Project Overview
 This project is a decentralized chat application built on the NEAR Protocol blockchain. It was developed as a Major Project for the academic year 2021-25 by students of the Department of Computer Science and Engineering at Dayananda Sagar University.
