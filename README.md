@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # NEAR Protocol Chat Application
+=======
+# SocioGram
+>>>>>>> 5cac86d826d5c74324edb3cd8150cfeb51b3e8d5
 
 ## Project Overview
 This project is a decentralized chat application built on the NEAR Protocol blockchain. It was developed as a Major Project for the academic year 2021-25 by students of the Department of Computer Science and Engineering at Dayananda Sagar University.
@@ -92,4 +96,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - All contributors who helped in the development of this project
 
 ## Contact
+<<<<<<< HEAD
 For any queries, please reach out to any of the team members mentioned above.
+=======
+For any queries, please reach out to any of the team members mentioned above.
+>>>>>>> 5cac86d826d5c74324edb3cd8150cfeb51b3e8d5
